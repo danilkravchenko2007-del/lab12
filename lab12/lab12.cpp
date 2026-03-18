@@ -94,12 +94,12 @@ void solve(int** board, int row, int K, int& count) {
 	}
 }
 
-void printBoard1D(int* board, int K) {
+void printBoard4Arrays(int* P, int K) {
 	if (K <= 10) {
 		cout << "----------------\n";
 		for (int i = 0; i < K; i++) {
 			for (int j = 0; j < K; j++) {
-				if (board[i] == j) {
+				if (P[j] == i) {
 					cout << "Q ";
 				}
 				else {
@@ -110,34 +110,34 @@ void printBoard1D(int* board, int K) {
 		}
 		cout << "----------------\n";
 	}
-
-}
-bool permuteIsOk1D(int* board, int row, int col, int K) {
-	for (int i = 0; i < row; i++) {
-		if (board[i] == col) // проверка столбца
-			return false;
-
-		if (abs(board[i] - col) == abs(row - i)) // проверка диагоналей
-			return false;
-	}
-	return true;
 }
 
-void solve1D(int* board, int row, int K, int& count) {
-	if (row == K) {
+
+void solve4Arrays(int col, int K, int* P, int* H, int* R, int* L, int& count) {
+	if (col == K) {
 		count++;
-		printBoard1D(board, K);
+		printBoard4Arrays(P, K);
 		return;
 	}
-	for (int col = 0; col < K; col++) {
-		if (permuteIsOk1D(board, row, col, K)) {
-			board[row] = col;
 
-			solve1D(board, row + 1, K, count);
+	for (int row = 0; row < K; row++) {
+		if (H[row] == 0 && R[row - col + K - 1] == 0 && L[row + col] == 0) {
+
+			P[col] = row;
+
+			H[row] = 1;
+			R[row - col + K - 1] = 1;
+			L[row + col] = 1;
+
+			solve4Arrays(col + 1, K, P, H, R, L, count); // рекурсия
+
+			// откат
+			H[row] = 0;
+			R[row - col + K - 1] = 0;
+			L[row + col] = 0;
 		}
 	}
 }
-
 int main() {
 	setlocale(LC_ALL, "Russian");
 	cout << "Введите размер поля К (не более 16 и не менее 1)" << endl;
@@ -172,21 +172,30 @@ int main() {
 
 	delete[] board;
 
-	cout << "\nРЕШЕНИЕ С ИСПОЛЬЗОВАНИЕМ ОДНОМЕРНОГО МАССИВА" << endl;
+	cout << "\nРЕШЕНИЕ ИЗ ЛЕКЦИЙ (4 МАССИВА)" << endl;
 
-	int* board1D = new int[K] { 0 };
+	// выделяем память под 4 массива
+	int* P = new int[K] { 0 };         // позиции ферзей
+	int* H = new int[K] { 0 };         // занятые строки
+	int* R = new int[2 * K - 1] { 0 }; // занятые главные диагонали (их всегда 2*K - 1)
+	int* L = new int[2 * K - 1] { 0 }; // занятые побочные диагонали (их всегда 2*K - 1)
 
-	int numSolutions1D = 0;
+	int numSolutions4 = 0;
 
 	if (K <= 10)
-		cout << "\nВсе возможные перестановки:" << endl;
+		cout << "\nВсе возможные расстановки:" << endl;
 
-	solve1D(board1D, 0, K, numSolutions1D);
+	solve4Arrays(0, K, P, H, R, L, numSolutions4);
 
-	cout << "Количество перестановок: " << numSolutions1D << endl;
+	cout << "Количество перестановок: " << numSolutions4 << endl;
 
-	delete[] board1D;
+	// Очистка памяти
+	delete[] P;
+	delete[] H;
+	delete[] R;
+	delete[] L;
 
+	return 0;
 }
 
 
